@@ -1,4 +1,4 @@
-Fault Hardened Transformers 
+# Fault Hardened Transformers 
 
 Train Llama models with hardware faults injected into the matmuls, score them under
 faults afterwards, and fit scaling laws to what comes out. 
