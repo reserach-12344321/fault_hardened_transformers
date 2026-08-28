@@ -1,0 +1,34 @@
+#!/bin/bash
+# Generic jax sbatch job for the CANNON (Harvard FASRC) cluster. Everything after this file on the
+# sbatch line is forwarded verbatim to python -- the orchestrator appends:
+#   worker.py <inputs_dir> <results_dir> <static_data_json> <max_seconds>  (plus per-job --flags).
+# Lives on cannon at ~/nano_llama/orchestrator_hooks/scripts/cannon_launcher.job.
+# Resource flags (cpus/mem/gres) and partition/account come from the orchestrator, NOT this file.
+#SBATCH --job-name=orch_worker
+#SBATCH --ntasks=1
+#SBATCH --time=3-00:00:00   # max that iaifi_gpu + gpu_requeue allow (iaifi_gpu_requeue permits 7d)
+
+source /n/home00/tmccourt/env/bin/activate
+
+export JAX_COMPILATION_CACHE_DIR="/n/netscratch/iaifi_lab/Lab/tmccourt/jax_jit_cache"
+export PYTHONPATH="/n/home00/tmccourt/nano_llama:$PYTHONPATH"
+export PYTHONPATH="/n/home00/tmccourt/cluster_orchestrator:$PYTHONPATH"
+
+# Clear inherited vars so SLURM's per-step GPU binding takes effect cleanly.
+unset JAX_PLATFORMS
+unset CUDA_VISIBLE_DEVICES
+unset XLA_FLAGS
+unset OMP_NUM_THREADS
+unset MKL_NUM_THREADS
+unset OPENBLAS_NUM_THREADS
+
+# Let JAX use most of the card. Default preallocation is only 75% of VRAM, which starves the big
+# rungs' backward temp buffer (and the extra headroom reduces BFC fragmentation OOMs). This pool is
+# also what choose_micro_batch reads as its memory limit, so it adapts the micro-batch to it.
+export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
+
+module load cuda/12.9.1-fasrc01
+module load cudnn/9.10.2.21_cuda12-fasrc01
+source /n/home00/tmccourt/env/bin/activate
+
+srun python -u "$@"   # -u: unbuffered stdout/stderr so the slurm log is live + survives kills

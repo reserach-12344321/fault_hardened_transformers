@@ -1,0 +1,18 @@
+#!/bin/bash
+# Generic jax python launcher for nano_llama jobs on the LOCAL single-node cluster. It sets up the
+# environment only -- both repos on PYTHONPATH (the worker imports nano_llama AND cluster_orchestrator)
+# plus the jax caches/allocator -- and forwards everything after this file on the sbatch line to
+# python, i.e.  <worker.py> <inputs_dir> <results_dir> <static_data_json> <max_seconds>.
+# It carries NO #SBATCH resource directives (cpu/mem/gres come from each job's resources.json, passed
+# as sbatch flags at submit time) EXCEPT --ntasks=1: the worker is a single training process, and
+# without this srun would launch one task per allocated hyperthread -> multiple workers racing on the
+# same results/checkpoint. So this one launcher still serves any nano_llama job.
+#SBATCH --job-name=nano_llama_worker
+#SBATCH --ntasks=1
+
+export PYTHONPATH=/home/trevor/nano_llama:/home/trevor/cluster_orchestrator:$PYTHONPATH
+export TF_GPU_ALLOCATOR=cuda_malloc_async
+export JAX_COMPILATION_CACHE_DIR=/home/trevor/jax_cache
+
+PY=/home/trevor/scienv/bin/python
+srun --ntasks=1 "$PY" -u "$@"   # -u: unbuffered so the slurm log is live + survives kills

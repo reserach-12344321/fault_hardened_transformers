@@ -1,0 +1,28 @@
+#!/bin/bash
+# Generic jax sbatch job for the engaging cluster. Everything after this file on the sbatch line is
+# forwarded verbatim to python -- the orchestrator appends: worker.py <job_dir> <data_dir> <seed>
+# <max_seconds>  (and possibly extra --flags). Lives on engaging at ~/orchestrator/slurm_template.job.
+#SBATCH --job-name=orch_worker
+#SBATCH --ntasks=1
+#SBATCH --time=24:00:00
+
+module load miniforge/24.3.0-0
+
+export JAX_COMPILATION_CACHE_DIR="/home/tmccourt/jax_jit_cache"
+export PYTHONPATH="/home/tmccourt/nano_llama:$PYTHONPATH"
+export PYTHONPATH="/home/tmccourt/cluster_orchestrator:$PYTHONPATH"
+
+# Clear inherited vars so SLURM's per-step GPU binding takes effect cleanly.
+unset JAX_PLATFORMS
+unset CUDA_VISIBLE_DEVICES
+unset XLA_FLAGS
+unset OMP_NUM_THREADS
+unset MKL_NUM_THREADS
+unset OPENBLAS_NUM_THREADS
+
+# Let JAX use most of the card. Default preallocation is only 75% of VRAM, which starves the big
+# rungs' backward temp buffer (and the extra headroom reduces BFC fragmentation OOMs). This pool is
+# also what choose_micro_batch reads as its memory limit, so it adapts the micro-batch to it.
+export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
+
+srun python -u "$@"   # -u: unbuffered stdout/stderr so the slurm log is live + survives kills
