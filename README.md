@@ -5,7 +5,7 @@ Code to accompany the paper "Fault-tolerant foundation models"
 Train Llama models with hardware faults injected into the matmuls, score them under
 faults afterwards, and fit scaling laws to what comes out. 
 
-This code was designed to train models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
+This code was designed to train and evaluate models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
 
 
 ## analysis/
