@@ -1,6 +1,6 @@
-# fault_hardened_transformers
+Fault Hardened Transformers 
 
-Train small Llama models with hardware faults injected into the matmuls, score them under
+Train Llama models with hardware faults injected into the matmuls, score them under
 faults afterwards, and fit scaling laws to what comes out. 
 
 This code was designed to train models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
