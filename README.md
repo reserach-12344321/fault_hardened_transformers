@@ -1,5 +1,7 @@
 # Fault Hardened Transformers 
 
+Code to accompany the paper "Fault-tolerant foundation models"
+
 Train Llama models with hardware faults injected into the matmuls, score them under
 faults afterwards, and fit scaling laws to what comes out. 
 
