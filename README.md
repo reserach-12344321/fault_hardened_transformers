@@ -1,25 +1,9 @@
 # fault_hardened_transformers
 
 Train small Llama models with hardware faults injected into the matmuls, score them under
-faults afterwards, and fit scaling laws to what comes out. A fault condition is a pair
-$(k, p)$, where $k$ is the block size (FMAs between error checks) and $p$ is the per-block
-fault probability. Train-time and eval-time faults are separate axes: a run trains under one
-$(k, p)$ and is then scored at many, so the same checkpoint contributes points to several
-places in the analysis.
+faults afterwards, and fit scaling laws to what comes out. 
 
-The experiments are $(N, D, p)$ sweeps. Every $(N, D)$ point is its own training run, there
-are no intermediate-checkpoint points, and each cohort of fixed $p_{\mathrm{train}}$ gets its
-own fit of
-
-$$L(N, D) = E + \exp(a - \alpha_1 u - \alpha_2 u^2) + \exp(b - \beta_1 v - \beta_2 v^2),
-\qquad u = \log(N/N_0),\ v = \log(D/D_0)$$
-
-which is Hoffmann et al. 2022 when the two curvatures are zero. Comparing the cohorts is what
-gives the capacity retained, $N_{\mathrm{eff}}/N$.
-
-Running anything on a cluster needs `cluster_orchestrator` on the `PYTHONPATH` alongside this
-repo. The model and training code need jax and equinox; the analysis side is numpy,
-matplotlib and joblib.
+This code was designed to train models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
 
 ## nano_llama/
 
@@ -102,5 +86,3 @@ fits, bootstraps and dumps the result. The notebooks read what it wrote.
 
 `python -m unittest` over `tests/`. They cover the faulted forward pass and its RNG, the
 training core, data parallelism, the loaders, serialisation, and the array staging logic.
-`test_data_parallel.py` wants to run on its own. The GPU on this box is usually busy, so they
-force `JAX_PLATFORMS=cpu`.
