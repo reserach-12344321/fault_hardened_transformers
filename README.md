@@ -5,6 +5,32 @@ faults afterwards, and fit scaling laws to what comes out.
 
 This code was designed to train models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
 
+
+## analysis/
+
+[fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
+the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
+fits, bootstraps and dumps the result. The notebooks read what it wrote.
+
+* [scaling_law_plots.ipynb](analysis/scaling_law_plots.ipynb) reads a saved fit and makes the
+  main figures: the residuals, the pairwise bootstrap correlations between fit parameters, the
+  capacity retained (main text Fig. 1) and the exponents with error bars (main text Fig. 3).
+* [scaling_law_effective_capacity.ipynb](analysis/scaling_law_effective_capacity.ipynb)
+  subtracts the fitted $D$ dependence off the raw losses and projects what is left back onto
+  the $p = 0$ law, which recovers the same capacity retained without committing to a
+  functional form for the $N$ dependence.
+* [scaling_law_full_fit_residuals.ipynb](analysis/scaling_law_full_fit_residuals.ipynb) is
+  where you can play with point fits and their residuals and see for yourself that $\alpha_2$
+  is needed to represent the structure in our data.
+* [scaling_law_fixed_E_profiles.ipynb](analysis/scaling_law_fixed_E_profiles.ipynb) refits
+  each cohort with $E$ pinned across a range of values, plotted as how much worse each cohort
+  does than its own free-$E$ best.
+* [reversal_d512.ipynb](analysis/reversal_d512.ipynb) shows that models trained without faults
+  can get worse as a function of $D$ when you evaluate them with faults (main text Fig. 4a).
+* [logit_temperature_d512.ipynb](analysis/logit_temperature_d512.ipynb) fits the single global
+  temperature that best explains the fault-marginalised predictive in forward KL, and splits
+  the total distortion into the part a temperature accounts for and the part it does not.
+
 ## nano_llama/
 
 The model and the training loop. Nothing in here knows about clusters or sweeps.
@@ -57,30 +83,6 @@ multi-start bounded L-BFGS-B, `starts.py` the centroid-anchored initialisations,
 screens them, and `fit_store.py` writes fits to disk as an npz plus a JSON manifest, so the
 plots do not depend on this repo's class layout to read a fit back.
 
-## analysis/
-
-[fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
-the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
-fits, bootstraps and dumps the result. The notebooks read what it wrote.
-
-* [scaling_law_plots.ipynb](analysis/scaling_law_plots.ipynb) reads a saved fit and makes the
-  main figures: the residuals, the pairwise bootstrap correlations between fit parameters, the
-  capacity retained (main text Fig. 1) and the exponents with error bars (main text Fig. 3).
-* [scaling_law_effective_capacity.ipynb](analysis/scaling_law_effective_capacity.ipynb)
-  subtracts the fitted $D$ dependence off the raw losses and projects what is left back onto
-  the $p = 0$ law, which recovers the same capacity retained without committing to a
-  functional form for the $N$ dependence.
-* [scaling_law_full_fit_residuals.ipynb](analysis/scaling_law_full_fit_residuals.ipynb) is
-  where you can play with point fits and their residuals and see for yourself that $\alpha_2$
-  is needed to represent the structure in our data.
-* [scaling_law_fixed_E_profiles.ipynb](analysis/scaling_law_fixed_E_profiles.ipynb) refits
-  each cohort with $E$ pinned across a range of values, plotted as how much worse each cohort
-  does than its own free-$E$ best.
-* [reversal_d512.ipynb](analysis/reversal_d512.ipynb) shows that models trained without faults
-  can get worse as a function of $D$ when you evaluate them with faults (main text Fig. 4a).
-* [logit_temperature_d512.ipynb](analysis/logit_temperature_d512.ipynb) fits the single global
-  temperature that best explains the fault-marginalised predictive in forward KL, and splits
-  the total distortion into the part a temperature accounts for and the part it does not.
 
 ## tests/
 
