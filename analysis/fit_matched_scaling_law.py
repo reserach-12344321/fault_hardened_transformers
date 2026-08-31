@@ -128,7 +128,7 @@ def _print_inventory(inventory, k_used):
 
 if __name__ == "__main__":
     # ---- source: the processed EvalResult dir from process_eval_arrays.py ----------------- # <-- SET
-    PROCESSED_DIR = "/mnt/storage/eval_summaries/training_2026-08-26-11-43-09"
+    PROCESSED_DIR = "/home/trevor/fht_summary_data/raw_loss_data"
     OUT_ROOT = "/media/trevor/data_flash/scaling_law_fits"
     OUT_DIR = os.path.join(OUT_ROOT, datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     #  the irreducible floor E. None fits it, 0.0 is a Kaplan pure power law, a
     # constant pins it.
-    FIX_E = 1.7
+    FIX_E = 1.53
     # the N-term's curvature alpha2. 0.0 is the plain Chinchilla power law, None
     # fits it, a constant pins it.
     FIX_ALPHA2 = None
