@@ -1,25 +1,37 @@
-# fault_hardened_transformers
+# Fault Hardened Transformers 
 
-Train small Llama models with hardware faults injected into the matmuls, score them under
-faults afterwards, and fit scaling laws to what comes out. A fault condition is a pair
-$(k, p)$, where $k$ is the block size (FMAs between error checks) and $p$ is the per-block
-fault probability. Train-time and eval-time faults are separate axes: a run trains under one
-$(k, p)$ and is then scored at many, so the same checkpoint contributes points to several
-places in the analysis.
+Code to accompany the paper "Fault-tolerant foundation models"
 
-The experiments are $(N, D, p)$ sweeps. Every $(N, D)$ point is its own training run, there
-are no intermediate-checkpoint points, and each cohort of fixed $p_{\mathrm{train}}$ gets its
-own fit of
+Train Llama models with hardware faults injected into the matmuls, score them under
+faults afterwards, and fit scaling laws to what comes out. 
 
-$$L(N, D) = E + \exp(a - \alpha_1 u - \alpha_2 u^2) + \exp(b - \beta_1 v - \beta_2 v^2),
-\qquad u = \log(N/N_0),\ v = \log(D/D_0)$$
+This code was designed to train and evaluate models on supercomputers: all compute jobs were driven through the  `cluster_orchestrator` package. 
 
-which is Hoffmann et al. 2022 when the two curvatures are zero. Comparing the cohorts is what
-gives the capacity retained, $N_{\mathrm{eff}}/N$.
 
-Running anything on a cluster needs `cluster_orchestrator` on the `PYTHONPATH` alongside this
-repo. The model and training code need jax and equinox; the analysis side is numpy,
-matplotlib and joblib.
+## analysis/
+
+[fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
+the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
+fits, bootstraps and dumps the result. The notebooks read what it wrote.
+
+* [scaling_law_plots.ipynb](analysis/scaling_law_plots.ipynb) reads a saved fit and makes the
+  main figures: the residuals, the pairwise bootstrap correlations between fit parameters, the
+  capacity retained (main text Fig. 1) and the exponents with error bars (main text Fig. 3).
+* [scaling_law_effective_capacity.ipynb](analysis/scaling_law_effective_capacity.ipynb)
+  subtracts the fitted $D$ dependence off the raw losses and projects what is left back onto
+  the $p = 0$ law, which recovers the same capacity retained without committing to a
+  functional form for the $N$ dependence.
+* [scaling_law_full_fit_residuals.ipynb](analysis/scaling_law_full_fit_residuals.ipynb) is
+  where you can play with point fits and their residuals and see for yourself that $\alpha_2$
+  is needed to represent the structure in our data.
+* [scaling_law_fixed_E_profiles.ipynb](analysis/scaling_law_fixed_E_profiles.ipynb) refits
+  each cohort with $E$ pinned across a range of values, plotted as how much worse each cohort
+  does than its own free-$E$ best.
+* [reversal_d512.ipynb](analysis/reversal_d512.ipynb) shows that models trained without faults
+  can get worse as a function of $D$ when you evaluate them with faults (main text Fig. 4a).
+* [logit_temperature_d512.ipynb](analysis/logit_temperature_d512.ipynb) fits the single global
+  temperature that best explains the fault-marginalised predictive in forward KL, and splits
+  the total distortion into the part a temperature accounts for and the part it does not.
 
 ## nano_llama/
 
@@ -73,34 +85,8 @@ multi-start bounded L-BFGS-B, `starts.py` the centroid-anchored initialisations,
 screens them, and `fit_store.py` writes fits to disk as an npz plus a JSON manifest, so the
 plots do not depend on this repo's class layout to read a fit back.
 
-## analysis/
-
-[fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
-the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
-fits, bootstraps and dumps the result. The notebooks read what it wrote.
-
-* [scaling_law_plots.ipynb](analysis/scaling_law_plots.ipynb) reads a saved fit and makes the
-  main figures: the residuals, the pairwise bootstrap correlations between fit parameters, the
-  capacity retained (main text Fig. 1) and the exponents with error bars (main text Fig. 3).
-* [scaling_law_effective_capacity.ipynb](analysis/scaling_law_effective_capacity.ipynb)
-  subtracts the fitted $D$ dependence off the raw losses and projects what is left back onto
-  the $p = 0$ law, which recovers the same capacity retained without committing to a
-  functional form for the $N$ dependence.
-* [scaling_law_full_fit_residuals.ipynb](analysis/scaling_law_full_fit_residuals.ipynb) is
-  where you can play with point fits and their residuals and see for yourself that $\alpha_2$
-  is needed to represent the structure in our data.
-* [scaling_law_fixed_E_profiles.ipynb](analysis/scaling_law_fixed_E_profiles.ipynb) refits
-  each cohort with $E$ pinned across a range of values, plotted as how much worse each cohort
-  does than its own free-$E$ best.
-* [reversal_d512.ipynb](analysis/reversal_d512.ipynb) shows that models trained without faults
-  can get worse as a function of $D$ when you evaluate them with faults (main text Fig. 4a).
-* [logit_temperature_d512.ipynb](analysis/logit_temperature_d512.ipynb) fits the single global
-  temperature that best explains the fault-marginalised predictive in forward KL, and splits
-  the total distortion into the part a temperature accounts for and the part it does not.
 
 ## tests/
 
 `python -m unittest` over `tests/`. They cover the faulted forward pass and its RNG, the
 training core, data parallelism, the loaders, serialisation, and the array staging logic.
-`test_data_parallel.py` wants to run on its own. The GPU on this box is usually busy, so they
-force `JAX_PLATFORMS=cpu`.
