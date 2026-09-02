@@ -10,9 +10,14 @@ This code was designed to train and evaluate models on supercomputers: all compu
 
 ## analysis/
 
-[fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
-the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
-fits, bootstraps and dumps the result. The notebooks read what it wrote.
+This code processes the results of our training experiments to produce the papers in our manuscript and 
+also some supplementary material. 
+
+Each notebook references  [this summary data]([https://www.example.com](https://drive.google.com/file/d/10bgaNYoaDGxOcslQ1aWuFFzhJZTs4Lqt/view?usp=drive_link)); you'll need to download it and replace the data path in the notebooks to re-run them.
+
+* [fit_matched_scaling_law.py](analysis/fit_matched_scaling_law.py) is the script that produces
+  the fits. It loads the processed JSONs, screens them, builds each cohort's $(N, D, L)$ arrays,
+  fits, bootstraps and dumps the result. The notebooks read what it wrote.
 
 * [scaling_law_plots.ipynb](analysis/scaling_law_plots.ipynb) reads a saved fit and makes the
   main figures: the residuals, the pairwise bootstrap correlations between fit parameters, the
