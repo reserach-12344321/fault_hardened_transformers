@@ -11,7 +11,7 @@ This code was designed to train and evaluate models on supercomputers: all compu
 ## analysis/
 
 This code processes the results of our training experiments to produce the papers in our manuscript and 
-also some supplementary material. 
+also some supplementary information. 
 
 Each notebook references  [this summary data](https://drive.google.com/file/d/10bgaNYoaDGxOcslQ1aWuFFzhJZTs4Lqt/view?usp=drive_link); you'll need to download it and replace the data path in the notebooks to re-run them.
 
